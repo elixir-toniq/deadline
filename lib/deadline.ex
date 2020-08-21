@@ -38,6 +38,19 @@ defmodule Deadline do
   end
 
   @doc """
+  Checks if a deadline has been reached or exceeded.
+  """
+  def reached? do
+    case Process.get(@key) do
+      nil ->
+        false
+
+      ctx ->
+        current_time() > ctx.deadline
+    end
+  end
+
+  @doc """
   Performs some work. If the deadline has already been exceeded than the function
   will not be called and the code will not be executed.
   """

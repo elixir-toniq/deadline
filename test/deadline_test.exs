@@ -54,4 +54,14 @@ defmodule DeadlineTest do
     new_remaining = Deadline.time_remaining(:millisecond)
     assert 0 < new_remaining && new_remaining < remaining
   end
+
+  test "can determine if a deadline has been reached" do
+    # If no deadline has been set then we should return false
+    assert Deadline.reached?() == false
+
+    Deadline.set(10)
+    assert Deadline.reached?() == false
+    :timer.sleep(20)
+    assert Deadline.reached?() == true
+  end
 end
