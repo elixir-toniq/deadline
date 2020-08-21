@@ -19,6 +19,12 @@ end)
 Deadline.work(fn ->
   Service.call()
 end)
+
+if Deadline.reached?() do
+  :cancel
+else
+  do_some_work()
+end
 ```
 
 <!-- MDOC !-->
@@ -32,4 +38,10 @@ def deps do
   ]
 end
 ```
+
+## Should I use this?
+
+We're experimenting with this API at my work. It hasn't been fully vetted in
+production yet. But the library is tiny and its easy to see how it works if
+you're considering using it.
 

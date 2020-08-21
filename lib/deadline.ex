@@ -7,8 +7,12 @@ defmodule Deadline do
   @key {__MODULE__, :ctx}
 
   @doc """
-  Sets a deadline in milliseconds.
+  Sets the deadline context. If a integer is passed it is assumed to be the
+  desired deadline in milliseconds. This function also accepts a full deadline
+  context. This is most commonly used when a deadline has already been set and
+  the context needs to be propagated to another BEAM process.
   """
+  def set(ctx) when is_map(ctx), do: Process.put(@key, ctx)
   def set(deadline) when is_integer(deadline) do
     start    = current_time()
     deadline = System.convert_time_unit(deadline, :millisecond, :native)

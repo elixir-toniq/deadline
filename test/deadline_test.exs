@@ -40,6 +40,19 @@ defmodule DeadlineTest do
     assert result == :ok
   end
 
+  test "deadline contexts can be shared across process boundaries" do
+    us = self()
+    Deadline.set(100)
+    ctx = Deadline.get()
+
+    spawn(fn ->
+      Deadline.set(ctx)
+      send(us, {:ctx, Deadline.get()})
+    end)
+
+    assert_receive {:ctx, ^ctx}
+  end
+
   test "executes functions even if the deadline isn't set" do
     assert Deadline.work(fn -> :ok end) == :ok
   end
