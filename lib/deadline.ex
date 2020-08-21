@@ -1,12 +1,17 @@
 defmodule Deadline do
-  @moduledoc """
-  Documentation for `Deadline`.
-  """
+  @moduledoc "README.md"
+             |> File.read!()
+             |> String.split("<!-- MDOC !-->")
+             |> Enum.fetch!(1)
 
   @key {__MODULE__, :deadline}
 
   def set(deadline) do
     Process.put(@key, deadline)
+  end
+
+  def get() do
+    Process.get(@key)
   end
 
   def work(f) do
