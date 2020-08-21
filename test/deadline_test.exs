@@ -43,4 +43,15 @@ defmodule DeadlineTest do
   test "executes functions even if the deadline isn't set" do
     assert Deadline.work(fn -> :ok end) == :ok
   end
+
+  test "returns the time_remaining" do
+    Deadline.set(5_000)
+    remaining = Deadline.time_remaining(:millisecond)
+    assert 0 < remaining && remaining < 5_000
+
+    :timer.sleep(100)
+
+    new_remaining = Deadline.time_remaining(:millisecond)
+    assert 0 < new_remaining && new_remaining < remaining
+  end
 end

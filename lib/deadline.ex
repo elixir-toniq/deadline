@@ -4,36 +4,59 @@ defmodule Deadline do
              |> String.split("<!-- MDOC !-->")
              |> Enum.fetch!(1)
 
-  @key {__MODULE__, :deadline}
+  @key {__MODULE__, :ctx}
 
-  def set(deadline) do
-    Process.put(@key, deadline)
+  @doc """
+  Sets a deadline in milliseconds.
+  """
+  def set(deadline) when is_integer(deadline) do
+    start    = current_time()
+    deadline = System.convert_time_unit(deadline, :millisecond, :native)
+    ctx      = %{deadline: start + deadline, start: start}
+
+    Process.put(@key, ctx)
   end
 
-  def get() do
+  @doc """
+  Returns the deadline context.
+  """
+  def get do
     Process.get(@key)
   end
 
-  def work(f) do
-    deadline = Process.get(@key)
+  @doc """
+  Returns the time remaining in a given unit. Defaults to `:native` units.
+  """
+  def time_remaining(unit \\ :native) do
+    case Process.get(@key) do
+      nil ->
+        :infinity
 
-    cond do
-      deadline == nil ->
-        f.()
-
-      deadline <= 0 ->
-        {:error, :deadline_exceeded}
-
-      true ->
-        start  = System.monotonic_time(:millisecond)
-        result = f.()
-        stop   = System.monotonic_time(:millisecond)
-
-        duration = stop - start
-        deadline = deadline - duration
-        set(deadline)
-
-        result
+      ctx ->
+        to_unit(unit, ctx.deadline - current_time())
     end
+  end
+
+  @doc """
+  Performs some work. If the deadline has already been exceeded than the function
+  will not be called and the code will not be executed.
+  """
+  def work(f) do
+    ctx = Process.get(@key)
+
+    if ctx && current_time() > ctx.deadline do
+      {:error, :deadline_exceeded}
+    else
+      f.()
+    end
+  end
+
+  defp current_time do
+    System.monotonic_time()
+  end
+
+  defp to_unit(:native, value), do: value
+  defp to_unit(unit, value) do
+    System.convert_time_unit(value, :native, unit)
   end
 end
