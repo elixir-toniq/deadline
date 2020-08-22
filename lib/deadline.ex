@@ -29,7 +29,7 @@ defmodule Deadline do
   end
 
   @doc """
-  Returns the time remaining in a given unit. Defaults to `:native` units.
+  Returns the remaining time before the dealine is reached, in a given unit. Defaults to `:native` units.
   """
   def time_remaining(unit \\ :native) do
     case Process.get(@key) do
@@ -56,15 +56,28 @@ defmodule Deadline do
 
   @doc """
   Performs some work. If the deadline has already been exceeded than the function
-  will not be called and the code will not be executed.
+  will not be called and the code will not be executed. If the deadline is reached,
+  the calling process will receive an exit signal with the reason of `:canceled`.
+  If you do not want the calling process to exit, you will need to trap exits
+  and handle any necessary cleanup.
   """
   def work(f) do
     ctx = Process.get(@key)
+    now = current_time()
 
-    if ctx && current_time() > ctx.deadline do
-      {:error, :deadline_exceeded}
-    else
-      f.()
+    cond do
+      ctx == nil ->
+        f.()
+
+      now > ctx.deadline ->
+        {:error, :deadline_exceeded}
+
+      true ->
+        timeout  = to_unit(:millisecond, ctx.deadline - now)
+        {:ok, t} = :timer.exit_after(timeout, :canceled)
+        result   = f.()
+        :timer.cancel(t)
+        result
     end
   end
 

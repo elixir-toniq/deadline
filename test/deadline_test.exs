@@ -14,8 +14,10 @@ defmodule DeadlineTest do
 
       Deadline.work(fn ->
         send(us, :job2)
-        :timer.sleep(500)
+        :timer.sleep(200)
       end)
+
+      :timer.sleep(300)
 
       Deadline.work(fn ->
         send(us, :job3)
@@ -51,6 +53,28 @@ defmodule DeadlineTest do
     end)
 
     assert_receive {:ctx, ^ctx}
+  end
+
+  test "working for longer than the deadline causes an exit" do
+    Process.flag(:trap_exit, true)
+
+    Deadline.set(100)
+    Deadline.work(fn ->
+      :timer.sleep(500)
+    end)
+
+    assert_receive {:EXIT, _, :canceled}
+  end
+
+  test "timers are canceled after work is completed" do
+    Process.flag(:trap_exit, true)
+
+    Deadline.set(10)
+    Deadline.work(fn ->
+      :ok
+    end)
+
+    refute_receive {:EXIT, _, :canceled}, 20
   end
 
   test "executes functions even if the deadline isn't set" do
