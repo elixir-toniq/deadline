@@ -39,9 +39,9 @@ defmodule Deadline.MixProject do
 
   def package do
     [
-      name: "norm",
+      name: "deadline",
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/keathley/norm"}
+      links: %{"GitHub" => "https://github.com/keathley/dealine"}
     ]
   end
 
