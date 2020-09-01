@@ -41,7 +41,7 @@ defmodule Deadline.MixProject do
     [
       name: "deadline",
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/keathley/dealine"}
+      links: %{"GitHub" => "https://github.com/keathley/deadline"}
     ]
   end
 
