@@ -92,6 +92,10 @@ defmodule DeadlineTest do
     assert 0 < new_remaining && new_remaining < remaining
   end
 
+  test "time_remaining/1 returns infinity if there is no deadline set" do
+    assert Deadline.time_remaining == :infinity
+  end
+
   test "can determine if a deadline has been reached" do
     # If no deadline has been set then we should return false
     assert Deadline.reached?() == false
@@ -100,5 +104,12 @@ defmodule DeadlineTest do
     assert Deadline.reached?() == false
     :timer.sleep(20)
     assert Deadline.reached?() == true
+  end
+
+  test "doesn't explode if there is no deadline context set" do
+    ctx = Deadline.get()
+    assert Deadline.set(ctx) == nil
+    assert Deadline.time_remaining == :infinity
+    assert Deadline.reached? == false
   end
 end
