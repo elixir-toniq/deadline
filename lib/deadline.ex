@@ -12,6 +12,7 @@ defmodule Deadline do
   context. This is most commonly used when a deadline has already been set and
   the context needs to be propagated to another BEAM process.
   """
+  def set(nil), do: nil
   def set(ctx) when is_map(ctx), do: Process.put(@key, ctx)
   def set(deadline) when is_integer(deadline) do
     start    = current_time()
