@@ -30,9 +30,9 @@ defmodule Deadline do
   end
 
   @doc """
-  Returns the remaining time before the dealine is reached, in a given unit. Defaults to `:native` units.
+  Returns the remaining time before the dealine is reached, in a given unit. Defaults to `:millisecond` units.
   """
-  def time_remaining(unit \\ :native) do
+  def time_remaining(unit \\ :millisecond) do
     case Process.get(@key) do
       nil ->
         :infinity
