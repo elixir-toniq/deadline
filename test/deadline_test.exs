@@ -83,7 +83,7 @@ defmodule DeadlineTest do
 
   test "returns the time_remaining" do
     Deadline.set(5_000)
-    remaining = Deadline.time_remaining(:millisecond)
+    remaining = Deadline.time_remaining()
     assert 0 < remaining && remaining < 5_000
 
     :timer.sleep(100)
