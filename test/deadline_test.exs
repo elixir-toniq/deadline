@@ -118,4 +118,46 @@ defmodule DeadlineTest do
     :timer.sleep(20)
     assert Deadline.time_remaining() == 0
   end
+
+  describe "exit_after" do
+    test "when deadline is missed -- process is killed" do
+      {pid, ref} = spawn_monitor(fn ->
+        Deadline.set(10)
+        Deadline.exit_after()
+        assert length(dynamic_supervisor_children()) == 1
+        :timer.sleep(30)
+      end)
+
+      :timer.sleep(20)
+
+      msg = receive do
+        {:DOWN, ^ref, :process, ^pid, :killed} -> true
+        _ -> false
+      end
+
+      assert msg
+      assert length(dynamic_supervisor_children()) == 0
+    end
+
+    test "when deadline is met -- process exits normally" do
+      {pid, ref} = spawn_monitor(fn ->
+        Deadline.set(10)
+        Deadline.exit_after()
+        assert length(dynamic_supervisor_children()) == 1
+      end)
+
+      msg = receive do
+        {:DOWN, ^ref, :process, ^pid, :normal} -> true
+        _ -> false
+      end
+
+      assert msg
+      :timer.sleep(1)
+      assert length(dynamic_supervisor_children()) == 0
+    end
+  end
+
+  defp dynamic_supervisor_children do
+    DynamicSupervisor.which_children(Deadline.DynamicSupervisor)
+  end
 end

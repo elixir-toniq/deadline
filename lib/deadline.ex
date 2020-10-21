@@ -30,6 +30,16 @@ defmodule Deadline do
   end
 
   @doc """
+  Kills the calling process after the deadline has passed.
+  """
+  def exit_after do
+    case Deadline.DynamicSupervisor.start_child(self(), time_remaining()) do
+      {:ok, _pid} -> :ok
+      {:error, _error} -> :error
+    end
+  end
+
+  @doc """
   Returns the remaining time before the dealine is reached, in a given unit. Defaults to `:millisecond` units.
   If the deadline has been exceeded than the time remaining will be 0.
   """
@@ -58,7 +68,7 @@ defmodule Deadline do
   end
 
   @doc """
-  Performs some work. If the deadline has already been exceeded than the function
+  Performs some work. If the deadline has already been exceeded then the function
   will not be called and the code will not be executed. If the deadline is reached,
   the calling process will receive an exit signal with the reason of `:canceled`.
   If you do not want the calling process to exit, you will need to trap exits
