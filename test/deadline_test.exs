@@ -112,4 +112,10 @@ defmodule DeadlineTest do
     assert Deadline.time_remaining == :infinity
     assert Deadline.reached? == false
   end
+
+  test "time_remaining/1 always returns 0 if the deadline has been exceeded" do
+    Deadline.set(10)
+    :timer.sleep(20)
+    assert Deadline.time_remaining() == 0
+  end
 end

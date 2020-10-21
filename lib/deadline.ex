@@ -31,6 +31,7 @@ defmodule Deadline do
 
   @doc """
   Returns the remaining time before the dealine is reached, in a given unit. Defaults to `:millisecond` units.
+  If the deadline has been exceeded than the time remaining will be 0.
   """
   def time_remaining(unit \\ :millisecond) do
     case Process.get(@key) do
@@ -38,7 +39,8 @@ defmodule Deadline do
         :infinity
 
       ctx ->
-        to_unit(unit, ctx.deadline - current_time())
+        # Don't allow the value to go negative
+        max(0, to_unit(unit, ctx.deadline - current_time()))
     end
   end
 
