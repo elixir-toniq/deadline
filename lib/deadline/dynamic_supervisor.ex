@@ -1,7 +1,7 @@
-defmodule Deadline.DynamicSupervisor do
+defmodule Deadline.MonitorSupervisor do
   @moduledoc false
-
   use DynamicSupervisor
+
   alias Deadline.Monitor
 
   def start_link(opts) do

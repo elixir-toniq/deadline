@@ -158,6 +158,6 @@ defmodule DeadlineTest do
   end
 
   defp dynamic_supervisor_children do
-    DynamicSupervisor.which_children(Deadline.DynamicSupervisor)
+    DynamicSupervisor.which_children(Deadline.MonitorSupervisor)
   end
 end

@@ -30,10 +30,13 @@ defmodule Deadline do
   end
 
   @doc """
-  Kills the calling process after the deadline has passed.
+  Forces the calling process to exit if the deadline is reached. This will start
+  a new process and that process will live as long as the calling process lives
+  or until the deadline is reached. The extra processes should not present a
+  problem in most cases, but it could present memory pressure in low memory environments.
   """
   def exit_after do
-    case Deadline.DynamicSupervisor.start_child(self(), time_remaining()) do
+    case Deadline.MonitorSupervisor.start_child(self(), time_remaining()) do
       {:ok, _pid} -> :ok
       {:error, _error} -> :error
     end
@@ -67,13 +70,15 @@ defmodule Deadline do
     end
   end
 
-  @doc """
-  Performs some work. If the deadline has already been exceeded then the function
-  will not be called and the code will not be executed. If the deadline is reached,
-  the calling process will receive an exit signal with the reason of `:canceled`.
-  If you do not want the calling process to exit, you will need to trap exits
-  and handle any necessary cleanup.
+
+  @doc deprecated: """
+  work/1 is not considered to be a safe operation. You should instead use the other
+  primitives in Deadline, or spawn a `Task` with the specified deadline like so:
+
+  Task.async(fn -> do_some_work() end)
+  |> Task.await(Deadline.time_remaining())
   """
+  @deprecated "Use exit_after instead."
   def work(f) do
     ctx = Process.get(@key)
     now = current_time()
@@ -88,7 +93,7 @@ defmodule Deadline do
       true ->
         timeout  = to_unit(:millisecond, ctx.deadline - now)
         {:ok, t} = :timer.exit_after(timeout, :canceled)
-        result   = f.()
+        result = f.()
         :timer.cancel(t)
         result
     end
