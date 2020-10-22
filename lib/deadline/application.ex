@@ -4,7 +4,7 @@ defmodule Deadline.Application do
 
   def start(_type, _opts) do
     children = [
-      Deadline.DynamicSupervisor
+      Deadline.MonitorSupervisor
     ]
 
     opts = [strategy: :one_for_one, name: Deadline.Supervisor]

@@ -1,4 +1,8 @@
 defmodule Deadline.Monitor do
+  @moduledoc false
+  # This process is used to monitor another process and kill that process if
+  # the given deadline is reached. Otherwise, if the calling process ends normally,
+  # this process will simply shut itself down gracefully.
   use GenServer, restart: :temporary
 
   def start_link(opts) do
