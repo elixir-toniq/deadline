@@ -70,13 +70,15 @@ defmodule Deadline do
     end
   end
 
-  @doc """
-  Performs some work. If the deadline has already been exceeded then the function
-  will not be called and the code will not be executed. If the deadline is reached,
-  the calling process will receive an exit signal with the reason of `:canceled`.
-  If you do not want the calling process to exit, you will need to trap exits
-  and handle any necessary cleanup.
+
+  @doc deprecated: """
+  work/1 is not considered to be a safe operation. You should instead use the other
+  primitives in Deadline, or spawn a `Task` with the specified deadline like so:
+
+  Task.async(fn -> do_some_work() end)
+  |> Task.await(Deadline.time_remaining())
   """
+  @deprecated "Use exit_after instead."
   def work(f) do
     ctx = Process.get(@key)
     now = current_time()
@@ -91,7 +93,7 @@ defmodule Deadline do
       true ->
         timeout  = to_unit(:millisecond, ctx.deadline - now)
         {:ok, t} = :timer.exit_after(timeout, :canceled)
-        result   = f.()
+        result = f.()
         :timer.cancel(t)
         result
     end
