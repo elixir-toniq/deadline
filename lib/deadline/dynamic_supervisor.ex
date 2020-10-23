@@ -8,8 +8,8 @@ defmodule Deadline.MonitorSupervisor do
     DynamicSupervisor.start_link(__MODULE__, opts, name: __MODULE__)
   end
 
-  def start_child(pid, deadline) do
-    spec = {Monitor, deadline: deadline, pid: pid}
+  def start_child(pid, deadline, before_exit) do
+    spec = {Monitor, deadline: deadline, pid: pid, before_exit: before_exit}
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
 

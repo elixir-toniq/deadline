@@ -12,17 +12,21 @@ defmodule Deadline.Monitor do
   @impl true
   def init(opts) do
     deadline = Keyword.fetch!(opts, :deadline)
-    pid = Keyword.fetch!(opts, :pid)
+    before_exit = get_in(opts, [:before_exit])
+    pid = get_in(opts, [:pid])
     ref = Process.monitor(pid)
 
-    Process.send_after(self(), :kill, deadline)
+    Process.send_after(self(), :exit_monitored_process, deadline)
 
-    {:ok, %{ref: ref, pid: pid}}
+    {:ok, %{ref: ref, pid: pid, before_exit: before_exit}}
   end
 
   @impl true
-  def handle_info(:kill, %{pid: pid} = state) do
-    Process.exit(pid, :kill)
+  def handle_info(:exit_monitored_process, %{pid: pid, before_exit: before_exit} = state) do
+    if before_exit, do: before_exit.()
+
+    Process.exit(pid, :deadline_exceeded)
+
     {:stop, :normal, state}
   end
 

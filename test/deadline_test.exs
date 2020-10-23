@@ -120,7 +120,7 @@ defmodule DeadlineTest do
   end
 
   describe "exit_after" do
-    test "when deadline is missed -- process is killed" do
+    test "when deadline is missed -- the calling process is exited" do
       {pid, ref} = spawn_monitor(fn ->
         Deadline.set(10)
         Deadline.exit_after()
@@ -128,14 +128,32 @@ defmodule DeadlineTest do
         :timer.sleep(30)
       end)
 
+      assert Process.alive?(pid)
+
       :timer.sleep(20)
 
-      msg = receive do
-        {:DOWN, ^ref, :process, ^pid, :killed} -> true
-        _ -> false
-      end
+      assert assert_on_message({:DOWN, ref, :process, pid, :deadline_exceeded})
+      refute Process.alive?(pid)
+      assert length(dynamic_supervisor_children()) == 0
+    end
 
-      assert msg
+    test "when deadline is missed and a before_exit is passed -- the before_exit callback is called prior to exiting the calling process" do
+      self = self()
+
+      {pid, ref} = spawn_monitor(fn ->
+        Deadline.set(10)
+        Deadline.exit_after(fn -> Process.send(self, :before_exit, []) end)
+        assert length(dynamic_supervisor_children()) == 1
+        :timer.sleep(30)
+      end)
+
+      assert Process.alive?(pid)
+
+      :timer.sleep(20)
+
+      assert assert_on_message(:before_exit)
+      assert assert_on_message({:DOWN, ref, :process, pid, :deadline_exceeded})
+      refute Process.alive?(pid)
       assert length(dynamic_supervisor_children()) == 0
     end
 
@@ -146,14 +164,18 @@ defmodule DeadlineTest do
         assert length(dynamic_supervisor_children()) == 1
       end)
 
-      msg = receive do
-        {:DOWN, ^ref, :process, ^pid, :normal} -> true
-        _ -> false
-      end
-
-      assert msg
+      assert Process.alive?(pid)
+      assert assert_on_message({:DOWN, ref, :process, pid, :normal})
+      refute Process.alive?(pid)
       :timer.sleep(1)
       assert length(dynamic_supervisor_children()) == 0
+    end
+  end
+
+  defp assert_on_message(msg) do
+    receive do
+      ^msg -> true
+      _ -> false
     end
   end
 
