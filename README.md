@@ -34,7 +34,7 @@ end
 ```elixir
 def deps do
   [
-    {:deadline, "~> 0.6"}
+    {:deadline, "~> 0.7"}
   ]
 end
 ```
