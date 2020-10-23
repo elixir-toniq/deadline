@@ -34,9 +34,11 @@ defmodule Deadline do
   a new process and that process will live as long as the calling process lives
   or until the deadline is reached. The extra processes should not present a
   problem in most cases, but it could present memory pressure in low memory environments.
+
+  Accepts a callback that will be executed prior to exiting the calling process.
   """
-  def exit_after do
-    case Deadline.MonitorSupervisor.start_child(self(), time_remaining()) do
+  def exit_after(before_exit \\ nil) do
+    case Deadline.MonitorSupervisor.start_child(self(), time_remaining(), before_exit) do
       {:ok, _pid} -> :ok
       {:error, _error} -> :error
     end
