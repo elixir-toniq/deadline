@@ -38,9 +38,14 @@ defmodule Deadline do
   Accepts a callback that will be executed prior to exiting the calling process.
   """
   def exit_after(before_exit \\ nil) do
-    case Deadline.MonitorSupervisor.start_child(self(), time_remaining(), before_exit) do
-      {:ok, _pid} -> :ok
-      {:error, _error} -> :error
+    case time_remaining() do
+      :infinity -> :ok
+
+      time_remaining ->
+        case Deadline.MonitorSupervisor.start_child(self(), time_remaining, before_exit) do
+          {:ok, _pid} -> :ok
+          {:error, _error} -> :error
+        end
     end
   end
 
