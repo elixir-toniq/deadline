@@ -77,7 +77,6 @@ defmodule Deadline do
     end
   end
 
-
   @doc deprecated: """
   work/1 is not considered to be a safe operation. You should instead use the other
   primitives in Deadline, or spawn a `Task` with the specified deadline like so:
