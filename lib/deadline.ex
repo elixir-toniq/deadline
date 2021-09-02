@@ -65,6 +65,21 @@ defmodule Deadline do
   end
 
   @doc """
+  Returns the time past the deadline, in a given unit. Defaults to `:millisecond` units.
+  If the deadline has not been exceeded then the time exceeded will be 0.
+  If there is no deadline then the  time exceeded will be nil.
+  """
+  def time_exceeded(unit \\ :millisecond) do
+    case Process.get(@key) do
+      nil ->
+        nil
+
+      ctx ->
+        max(0, to_unit(unit, current_time() - ctx.deadline))
+    end
+  end
+
+  @doc """
   Checks if a deadline has been reached or exceeded.
   """
   def reached? do

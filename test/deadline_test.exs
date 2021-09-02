@@ -92,8 +92,25 @@ defmodule DeadlineTest do
     assert 0 < new_remaining && new_remaining < remaining
   end
 
-  test "time_remaining/1 returns infinity if there is no deadline set" do
-    assert Deadline.time_remaining == :infinity
+  test "time_remaining/1 returns :infinity if there is no deadline set" do
+    assert Deadline.time_remaining() == :infinity
+  end
+
+  test "time_exceeded/1 returns 0 if the deadline has not been reached" do
+    Deadline.set(5_000)
+    exceeded = Deadline.time_exceeded()
+    assert 0 == exceeded
+  end
+
+  test "time_exceeded/1 returns nil if there is not context" do
+    assert Deadline.time_exceeded() == nil
+  end
+
+  test "time_exceeded/1 returns the time past the deadline when the deadline is exceeded" do
+    Deadline.set(10)
+    Process.sleep(20)
+    exceeded = Deadline.time_exceeded()
+    assert exceeded > 0
   end
 
   test "can determine if a deadline has been reached" do
@@ -109,8 +126,9 @@ defmodule DeadlineTest do
   test "doesn't explode if there is no deadline context set" do
     ctx = Deadline.get()
     assert Deadline.set(ctx) == nil
-    assert Deadline.time_remaining == :infinity
-    assert Deadline.reached? == false
+    assert Deadline.time_remaining() == :infinity
+    assert Deadline.time_exceeded() == nil
+    assert Deadline.reached?() == false
   end
 
   test "time_remaining/1 always returns 0 if the deadline has been exceeded" do
